@@ -545,7 +545,7 @@
                 
                 <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
                     <label for="import-file-input" style="cursor: pointer;" class="btn btn-secondary">Selecionar Arquivo de Backup</label>
-                    <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="importBackup(event)">
+                    <input type="file" id="import-file-input" accept=".json,application/json,text/plain" style="display:none;" onchange="importBackup(event)">
                 </div>
             </div>
 
@@ -1492,48 +1492,48 @@
         }
 
         function importBackup(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+    const file = event.target.files[0];
+    if (!file) return;
 
-            if (!confirm('⚠️ Esta operação substituirá todos os dados atuais. Deseja continuar?')) {
-                event.target.value = '';
-                return;
+    if (!confirm('⚠️ Esta operação substituirá todos os dados atuais. Deseja continuar?')) {
+        event.target.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const backup = JSON.parse(e.target.result);
+            if (!backup.version || !backup.groups || !backup.products) {
+                throw new Error('Arquivo de backup inválido ou corrompido.');
             }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const backup = JSON.parse(e.target.result);
-                    if (!backup.version || !backup.groups || !backup.products) {
-                        throw new Error('Arquivo de backup inválido ou corrompido.');
-                    }
+            const transaction = db.transaction(['groups', 'products', 'movements'], 'readwrite');
+            
+            transaction.objectStore('groups').clear();
+            transaction.objectStore('products').clear();
+            transaction.objectStore('movements').clear();
 
-                    const transaction = db.transaction(['groups', 'products', 'movements'], 'readwrite');
-                    
-                    transaction.objectStore('groups').clear();
-                    transaction.objectStore('products').clear();
-                    transaction.objectStore('movements').clear();
+            backup.groups.forEach(g => transaction.objectStore('groups').add(g));
+            backup.products.forEach(p => transaction.objectStore('products').add(p));
+            if (backup.movements) {
+                backup.movements.forEach(m => transaction.objectStore('movements').add(m));
+            }
 
-                    backup.groups.forEach(g => transaction.objectStore('groups').add(g));
-                    backup.products.forEach(p => transaction.objectStore('products').add(p));
-                    if (backup.movements) {
-                        backup.movements.forEach(m => transaction.objectStore('movements').add(m));
-                    }
-
-                    transaction.oncomplete = () => {
-                        showToast('Backup restaurado com sucesso!');
-                        navigate('dashboard');
-                        event.target.value = '';
-                    };
-
-                } catch (err) {
-                    console.error(err);
-                    showToast('Erro ao importar arquivo: formato inválido.');
-                    event.target.value = '';
-                }
+            transaction.oncomplete = () => {
+                showToast('Backup restaurado com sucesso!');
+                navigate('dashboard');
+                event.target.value = '';
             };
-            reader.readAsText(file);
+
+        } catch (err) {
+            console.error(err);
+            showToast('Erro ao importar arquivo: formato inválido.');
+            event.target.value = '';
         }
+    };
+    reader.readAsText(file, 'UTF-8');
+}
 
         function clearAllDataPrompt() {
             if (!confirm('⚠️ ATENÇÃO: Deseja apagar todos os dados do sistema permanentemente? Esta ação não pode ser desfeita.')) return;
