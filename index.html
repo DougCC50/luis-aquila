@@ -6,13 +6,11 @@
     <title>Luís e Áquila - Gestão de Estoque</title>
 
     <!-- Configurações PWA -->
+    <!-- Configurações PWA -->
     <meta name="theme-color" content="#8e44ad">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Luís e Áquila">
-    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/8e44ad/ffffff?text=L%26A">
-    
-    <!-- Ícone para iOS (Safari) -->
     <link rel="apple-touch-icon" href="icon.png">
 
     <!-- Link do Manifest -->
@@ -694,54 +692,13 @@
 
     <script>
         /* ==========================================================================
-           0. REGISTRO PWA (MANIFEST & SERVICE WORKER INLINE)
+           0. REGISTRO DE SERVICE WORKER
            ========================================================================== */
-        // Criar manifest dinamicamente
-        const manifestData = {
-            "name": "Luís e Áquila - Gestão de Salão",
-            "short_name": "Luís & Áquila",
-            "start_url": "./",
-            "display": "standalone",
-            "background_color": "#f8f9fa",
-            "theme_color": "#8e44ad",
-            "icons": [
-                {
-                    "src": "https://via.placeholder.com/192/8e44ad/ffffff?text=L%26A",
-                    "sizes": "192x192",
-                    "type": "image/png"
-                },
-                {
-                    "src": "https://via.placeholder.com/512/8e44ad/ffffff?text=L%26A",
-                    "sizes": "512x512",
-                    "type": "image/png"
-                }
-            ]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
-        document.getElementById('manifest-placeholder').setAttribute('href', URL.createObjectURL(manifestBlob));
-
-        // Registrar Service Worker Inline para Suporte Offline
         if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'luis-aquila-cache-v1';
-                self.addEventListener('install', (e) => {
-                    e.waitUntil(
-                        caches.open(CACHE_NAME).then((cache) => {
-                            return cache.addAll(['./']);
-                        })
-                    );
-                });
-                self.addEventListener('fetch', (e) => {
-                    e.respondWith(
-                        caches.match(e.request).then((res) => res || fetch(e.request))
-                    );
-                });
-            `;
-            const swBlob = new Blob([swCode], {type: 'application/javascript'});
-            const swUrl = URL.createObjectURL(swBlob);
-
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register(swUrl).catch(err => console.error("Erro ao registrar SW:", err));
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registrado:', reg.scope))
+                    .catch(err => console.error('Erro ao registrar SW:', err));
             });
         }
 
