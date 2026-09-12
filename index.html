@@ -545,7 +545,7 @@
                 
                 <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
                     <label for="import-file-input" style="cursor: pointer;" class="btn btn-secondary">Selecionar Arquivo de Backup</label>
-                    <input type="file" id="import-file-input" accept=".json,application/json,text/plain" style="display:none;" onchange="importBackup(event)">
+                    <input type="file" id="import-file-input" accept="*/*" style="display:none;" onchange="importBackup(event)">
                 </div>
             </div>
 
@@ -1494,6 +1494,13 @@
         function importBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
+
+    // Validação de segurança no JS para garantir que é um arquivo JSON
+    if (!file.name.toLowerCase().endsWith('.json') && file.type && !file.type.includes('json') && !file.type.includes('text')) {
+        showToast('Por favor, selecione um arquivo de backup válido (.json).');
+        event.target.value = '';
+        return;
+    }
 
     if (!confirm('⚠️ Esta operação substituirá todos os dados atuais. Deseja continuar?')) {
         event.target.value = '';
