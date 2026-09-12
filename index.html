@@ -629,15 +629,21 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Foto do Produto</label>
-                    <div class="photo-preview-container">
-                        <img id="img-preview" alt="Prévia">
-                        <div style="flex:1;">
-                            <input type="file" id="prod-photo-file" accept="image/*" onchange="handlePhotoSelect(event)">
-                            <button type="button" class="btn btn-secondary mt-2" style="font-size: 0.8rem; padding: 6px;" onclick="removePhoto()">Remover Foto</button>
-                        </div>
-                    </div>
-                </div>
+    <label>Foto do Produto</label>
+    <div class="photo-preview-container">
+        <img id="img-preview" alt="Prévia">
+        <div style="flex:1;">
+            <input type="file" id="prod-photo-camera" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)" style="display:none;">
+            <input type="file" id="prod-photo-gallery" accept="image/*" onchange="handlePhotoSelect(event)" style="display:none;">
+            
+            <div class="btn-group" style="margin-top:0;">
+                <button type="button" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px;" onclick="document.getElementById('prod-photo-camera').click()">📷 Câmera</button>
+                <button type="button" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px;" onclick="document.getElementById('prod-photo-gallery').click()">🖼️ Galeria</button>
+            </div>
+            <button type="button" class="btn btn-danger mt-2" style="font-size: 0.8rem; padding: 6px;" onclick="removePhoto()">Remover Foto</button>
+        </div>
+    </div>
+</div>
 
                 <button type="submit" class="btn btn-primary">Salvar Produto</button>
             </form>
@@ -1003,12 +1009,19 @@
         }
 
         function removePhoto() {
-            currentCompressedPhoto = null;
-            const preview = document.getElementById('img-preview');
-            preview.src = '';
-            preview.style.display = 'none';
-            document.getElementById('prod-photo-file').value = '';
-        }
+    currentCompressedPhoto = null;
+    const preview = document.getElementById('img-preview');
+    if (preview) {
+        preview.src = '';
+        preview.style.display = 'none';
+    }
+    
+    const inputCamera = document.getElementById('prod-photo-camera');
+    const inputGallery = document.getElementById('prod-photo-gallery');
+    
+    if (inputCamera) inputCamera.value = '';
+    if (inputGallery) inputGallery.value = '';
+}
 
         /* ==========================================================================
            6. CRUD DE PRODUTOS & ESTOQUE
