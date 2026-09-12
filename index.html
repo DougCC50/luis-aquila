@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luís e Áquila - Gestão de Estoque</title>
+
+    <!-- Configurações PWA -->
+    <meta name="theme-color" content="#8e44ad">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Luís e Áquila">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/8e44ad/ffffff?text=L%26A">
+    
+    <!-- Ícone para iOS (Safari) -->
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <!-- Link do Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <style>
+        :root {
+            --primary: #8e44ad;
+            --primary-dark: #6c3483;
+            --secondary: #f39c12;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --warning: #d35400;
+            --info: #2980b9;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #7f8c8d;
+            --border-color: #e0e0e0;
+            --nav-height: 65px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: calc(var(--nav-height) + 20px);
+            line-height: 1.2;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* Navegação Inferior (Mobile First) */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background-color: white;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            flex: 1;
+            padding: 8px 0;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .nav-item span.icon {
+            font-size: 1.4rem;
+            margin-bottom: 3px;
+        }
+
+        /* Telas/Seções */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Cards e Layout */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--primary);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .stat-card.danger { border-left-color: var(--danger); }
+        .stat-card.warning { border-left-color: var(--warning); }
+        .stat-card.success { border-left-color: var(--success); }
+        .stat-card.info { border-left-color: var(--info); }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Botões de Atalho Dashboard */
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .shortcut-btn {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 12px 5px;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .shortcut-btn span { font-size: 1.5rem; }
+
+        /* Formulários e Inputs */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            background: #fff;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:active { background-color: var(--primary-dark); }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-secondary { background-color: #95a5a6; color: white; }
+        .btn-success { background-color: var(--success); color: white; }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* Listas e Badges */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .product-card {
+            display: flex;
+            gap: 12px;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            align-items: center;
+            position: relative;
+        }
+
+        .product-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #eee;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-size: 0.7rem;
+            text-align: center;
+        }
+
+        .product-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-title {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-detail {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .badge-danger { background-color: var(--danger); }
+        .badge-warning { background-color: var(--warning); }
+        .badge-yellow { background-color: #f1c40f; color: #333; }
+        .badge-success { background-color: var(--success); }
+        .badge-info { background-color: var(--info); }
+        .badge-secondary { background-color: #95a5a6; }
+
+        /* Filtros e Busca */
+        .filters-container {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            white-space: nowrap;
+        }
+
+        .chip {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Foto Preview */
+        .photo-preview-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        #img-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+
+        /* Modais */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 15px;
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        /* Utilitários */
+        .text-right { text-align: right; }
+        .mt-2 { margin-top: 10px; }
+        .mb-2 { margin-bottom: 10px; }
+        
+        /* Notificações / Toasts */
+        #toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 3000;
+            display: none;
+            text-align: center;
+            max-width: 90%;
+        }
+
+        @media (min-width: 768px) {
+            body { max-width: 600px; margin: 0 auto; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="header-title">Luís e Áquila - Início</header>
+
+    <div class="container">
+
+        <!-- TELA 1: INÍCIO / DASHBOARD -->
+        <section id="view-dashboard" class="view active">
+            <div class="dashboard-grid">
+                <a href="#" onclick="navigate('products'); filterProductsByStatus('all'); return false;" class="stat-card info">
+                    <div class="stat-label">Total Produtos</div>
+                    <div class="stat-number" id="dash-total-prods">0</div>
+                </a>
+                <a href="#" onclick="navigate('products'); filterProductsByStatus('all'); return false;" class="stat-card success">
+                    <div class="stat-label">Unidades Estoque</div>
+                    <div class="stat-number" id="dash-total-units">0</div>
+                </a>
+                <a href="#" onclick="navigate('products'); filterProductsByStatus('expired'); return false;" class="stat-card danger">
+                    <div class="stat-label">Vencidos</div>
+                    <div class="stat-number" id="dash-expired">0</div>
+                </a>
+                <a href="#" onclick="navigate('products'); filterProductsByStatus('warning'); return false;" class="stat-card warning">
+                    <div class="stat-label">Próx. Vencimento</div>
+                    <div class="stat-number" id="dash-warning">0</div>
+                </a>
+            </div>
+
+            <div class="card" style="border-left: 5px solid var(--warning); margin-bottom: 20px;" id="card-low-stock-alert">
+                <div style="font-weight: bold; margin-bottom: 5px;">Alerta de Estoque Baixo</div>
+                <div id="dash-low-stock-text" style="font-size: 0.9rem; color: var(--text-muted);">Nenhum produto com estoque baixo.</div>
+                <button class="btn btn-primary mt-2" style="padding: 8px; font-size: 0.9rem;" onclick="navigate('products'); filterProductsByStatus('low_stock');">Ver Produtos com Estoque Baixo</button>
+            </div>
+
+            <div style="font-weight: bold; margin-bottom: 10px;">Atalhos Rápidos</div>
+            <div class="shortcut-grid">
+                <a href="#" onclick="openProductModal(); return false;" class="shortcut-btn">
+                    <span>➕</span> Novo Produto
+                </a>
+                <a href="#" onclick="navigate('products'); return false;" class="shortcut-btn">
+                    <span>📦</span> Estoque
+                </a>
+                <a href="#" onclick="navigate('products'); filterProductsByStatus('expired_or_warning'); return false;" class="shortcut-btn">
+                    <span>⏰</span> Validades
+                </a>
+                <a href="#" onclick="navigate('groups'); return false;" class="shortcut-btn">
+                    <span>📁</span> Grupos
+                </a>
+                <a href="#" onclick="navigate('settings'); return false;" class="shortcut-btn">
+                    <span>💾</span> Backup
+                </a>
+            </div>
+        </section>
+
+        <!-- TELA 2: ESTOQUE / PRODUTOS -->
+        <section id="view-products" class="view">
+            <div class="filters-container">
+                <input type="text" id="search-input" placeholder="Pesquisar por nome, código ou lote..." oninput="renderProductList()">
+                
+                <div class="filter-chips">
+                    <div class="chip active" onclick="setProductFilter('all', this)">Todos</div>
+                    <div class="chip" onclick="setProductFilter('expired', this)">Vencidos</div>
+                    <div class="chip" onclick="setProductFilter('warning', this)">Vencendo</div>
+                    <div class="chip" onclick="setProductFilter('low_stock', this)">Estoque Baixo</div>
+                </div>
+                <div id="group-filter-chips" class="filter-chips">
+                    <!-- Dinâmico por Grupo -->
+                </div>
+            </div>
+
+            <button class="btn btn-primary mb-2" onclick="openProductModal()">+ Cadastrar Novo Produto</button>
+
+            <div id="product-list" class="item-list">
+                <!-- Preenchido via JS -->
+            </div>
+        </section>
+
+        <!-- TELA 3: GRUPOS -->
+        <section id="view-groups" class="view">
+            <div class="card">
+                <div style="font-weight: bold; margin-bottom: 10px;" id="group-form-title">Cadastrar Novo Grupo</div>
+                <input type="hidden" id="group-id-edit">
+                <div class="form-group">
+                    <input type="text" id="group-name-input" placeholder="Nome do grupo (ex: Esmaltes)">
+                </div>
+                <button class="btn btn-primary" onclick="saveGroup()">Salvar Grupo</button>
+                <button id="group-cancel-btn" class="btn btn-secondary mt-2" style="display:none;" onclick="resetGroupForm()">Cancelar Edição</button>
+            </div>
+
+            <div style="font-weight: bold; margin-bottom: 10px;">Grupos Cadastrados</div>
+            <div id="group-list" class="item-list">
+                <!-- Preenchido via JS -->
+            </div>
+        </section>
+
+        <!-- TELA 4: ALERTAS / VALIDADES -->
+        <section id="view-alerts" class="view">
+            <div class="card">
+                <div style="font-weight: bold; margin-bottom: 5px;">Critérios de Validade Atuais</div>
+                <ul style="font-size: 0.85rem; padding-left: 20px; color: var(--text-muted);">
+                    <li>🔴 Vencido: Data anterior a hoje</li>
+                    <li>🟠 Vence em até 7 dias</li>
+                    <li>🟡 Vence em até 30 dias</li>
+                    <li>🟢 Mais de 30 dias</li>
+                </ul>
+            </div>
+            
+            <div style="font-weight: bold; margin-bottom: 10px;">Produtos que Exigem Atenção</div>
+            <div id="alert-product-list" class="item-list">
+                <!-- Preenchido via JS -->
+            </div>
+        </section>
+
+        <!-- TELA 5: CONFIGURAÇÕES E BACKUP -->
+        <section id="view-settings" class="view">
+            <div class="card">
+                <div style="font-weight: bold; margin-bottom: 10px;">Gerenciamento de Dados (Backup)</div>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
+                    Exporte todos os seus cadastros, histórico e fotos para um arquivo JSON seguro ou restaure a partir de um backup anterior.
+                </p>
+                <button class="btn btn-primary mb-2" onclick="exportBackup()">Exportar Backup (JSON)</button>
+                
+                <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <label for="import-file-input" style="cursor: pointer;" class="btn btn-secondary">Selecionar Arquivo de Backup</label>
+                    <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="importBackup(event)">
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="font-weight: bold; margin-bottom: 10px; color: var(--danger);">Zona de Perigo</div>
+                <button class="btn btn-danger" onclick="clearAllDataPrompt()">Apagar Todos os Dados</button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- NAVEGAÇÃO INFERIOR -->
+    <nav>
+        <a href="#" onclick="navigate('dashboard'); return false;" class="nav-item active" id="nav-dashboard">
+            <span class="icon">🏠</span> Início
+        </a>
+        <a href="#" onclick="navigate('products'); return false;" class="nav-item" id="nav-products">
+            <span class="icon">📦</span> Estoque
+        </a>
+        <a href="#" onclick="navigate('groups'); return false;" class="nav-item" id="nav-groups">
+            <span class="icon">📁</span> Grupos
+        </a>
+        <a href="#" onclick="navigate('alerts'); return false;" class="nav-item" id="nav-alerts">
+            <span class="icon">⚠️</span> Alertas
+        </a>
+        <a href="#" onclick="navigate('settings'); return false;" class="nav-item" id="nav-settings">
+            <span class="icon">⚙️</span> Backup
+        </a>
+    </nav>
+
+    <!-- MODAL DE CADASTRO / EDIÇÃO DE PRODUTO -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="product-modal-title">Novo Produto</span>
+                <button class="close-modal" onclick="closeProductModal()">&times;</button>
+            </div>
+            <form id="product-form" onsubmit="saveProduct(event)">
+                <input type="hidden" id="prod-id">
+                
+                <div class="form-group">
+                    <label>Nome do Produto *</label>
+                    <input type="text" id="prod-name" required placeholder="Ex: Esmalte Vermelho Cravo">
+                </div>
+
+                <div class="form-group">
+                    <label>Grupo *</label>
+                    <select id="prod-group" required>
+                        <!-- Preenchido via JS -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Código do Produto / Barras</label>
+                    <input type="text" id="prod-code" placeholder="Opcional">
+                </div>
+
+                <div class="form-group">
+                    <label>Lote</label>
+                    <input type="text" id="prod-batch" placeholder="Opcional">
+                </div>
+
+                <div class="form-group">
+                    <label>Data de Validade</label>
+                    <input type="date" id="prod-expiry">
+                </div>
+
+                <div class="form-group">
+                    <label>Quantidade Atual *</label>
+                    <input type="number" id="prod-qty" min="0" required value="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Estoque Mínimo (Alerta)</label>
+                    <input type="number" id="prod-min-qty" min="0" value="2">
+                </div>
+
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea id="prod-obs" rows="2" placeholder="Detalhes adicionais..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Foto do Produto</label>
+                    <div class="photo-preview-container">
+                        <img id="img-preview" alt="Prévia">
+                        <div style="flex:1;">
+                            <input type="file" id="prod-photo-file" accept="image/*" onchange="handlePhotoSelect(event)">
+                            <button type="button" class="btn btn-secondary mt-2" style="font-size: 0.8rem; padding: 6px;" onclick="removePhoto()">Remover Foto</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Salvar Produto</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE MOVIMENTAÇÃO DE ESTOQUE -->
+    <div id="movement-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="movement-modal-title">Movimentar Estoque</span>
+                <button class="close-modal" onclick="closeMovementModal()">&times;</button>
+            </div>
+            <div id="movement-prod-info" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;"></div>
+            <form id="movement-form" onsubmit="saveMovement(event)">
+                <input type="hidden" id="mov-prod-id">
+                <div class="form-group">
+                    <label>Tipo de Movimentação</label>
+                    <select id="mov-type">
+                        <option value="IN">Entrada (Adicionar)</option>
+                        <option value="OUT">Saída (Retirar)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantidade *</label>
+                    <input type="number" id="mov-qty" min="1" required value="1">
+                </div>
+                <div class="form-group">
+                    <label>Observação / Motivo</label>
+                    <input type="text" id="mov-obs" placeholder="Ex: Compra de reposição, Uso em cliente...">
+                </div>
+                <button type="submit" class="btn btn-primary">Confirmar Movimentação</button>
+            </form>
+
+            <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                <div style="font-weight: bold; font-size: 0.9rem; margin-bottom: 8px;">Histórico Recente</div>
+                <div id="movement-history-list" style="max-height: 150px; overflow-y: auto; font-size: 0.8rem;">
+                    <!-- Histórico -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE DETALHES -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content" id="details-modal-content">
+            <!-- Conteúdo dinâmico -->
+        </div>
+    </div>
+
+    <div id="toast">Mensagem do sistema</div>
+
+    <script>
+        /* ==========================================================================
+           0. REGISTRO PWA (MANIFEST & SERVICE WORKER INLINE)
+           ========================================================================== */
+        // Criar manifest dinamicamente
+        const manifestData = {
+            "name": "Luís e Áquila - Gestão de Salão",
+            "short_name": "Luís & Áquila",
+            "start_url": "./",
+            "display": "standalone",
+            "background_color": "#f8f9fa",
+            "theme_color": "#8e44ad",
+            "icons": [
+                {
+                    "src": "https://via.placeholder.com/192/8e44ad/ffffff?text=L%26A",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                },
+                {
+                    "src": "https://via.placeholder.com/512/8e44ad/ffffff?text=L%26A",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+        document.getElementById('manifest-placeholder').setAttribute('href', URL.createObjectURL(manifestBlob));
+
+        // Registrar Service Worker Inline para Suporte Offline
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'luis-aquila-cache-v1';
+                self.addEventListener('install', (e) => {
+                    e.waitUntil(
+                        caches.open(CACHE_NAME).then((cache) => {
+                            return cache.addAll(['./']);
+                        })
+                    );
+                });
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(
+                        caches.match(e.request).then((res) => res || fetch(e.request))
+                    );
+                });
+            `;
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            const swUrl = URL.createObjectURL(swBlob);
+
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register(swUrl).catch(err => console.error("Erro ao registrar SW:", err));
+            });
+        }
+
+        /* ==========================================================================
+           1. CONFIGURAÇÕES E CONSTANTES DE VALIDADE
+           ========================================================================== */
+        const VALIDITY_RULES = {
+            WARNING_DAYS_CRITICAL: 7,
+            WARNING_DAYS_ALERT: 30
+        };
+
+        const DB_NAME = "LuisAquilaGestaoDB";
+        const DB_VERSION = 1;
+        let db = null;
+
+        // Estado da Aplicação
+        let currentView = 'dashboard';
+        let currentProductFilter = 'all';
+        let currentGroupFilter = null;
+        let currentCompressedPhoto = null;
+
+        /* ==========================================================================
+           2. INICIALIZAÇÃO DO INDEXEDDB
+           ========================================================================== */
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = (event) => {
+                    console.error("Erro ao abrir IndexedDB:", event.target.error);
+                    showToast("Erro crítico: Banco de dados indisponível.");
+                    reject(event.target.error);
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve(db);
+                    initializeApp();
+                };
+
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    
+                    if (!database.objectStoreNames.contains('groups')) {
+                        database.createObjectStore('groups', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!database.objectStoreNames.contains('products')) {
+                        const productStore = database.createObjectStore('products', { keyPath: 'id', autoIncrement: true });
+                        productStore.createIndex('groupId', 'groupId', { unique: false });
+                    }
+                    if (!database.objectStoreNames.contains('movements')) {
+                        const movStore = database.createObjectStore('movements', { keyPath: 'id', autoIncrement: true });
+                        movStore.createIndex('productId', 'productId', { unique: false });
+                    }
+                };
+            });
+        }
+
+        /* ==========================================================================
+           3. UTILITÁRIOS E UI
+           ========================================================================== */
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function navigate(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const targetView = document.getElementById(`view-${viewId}`);
+            const targetNav = document.getElementById(`nav-${viewId}`);
+
+            if (targetView) targetView.classList.add('active');
+            if (targetNav) targetNav.classList.add('active');
+
+            currentView = viewId;
+            window.scrollTo(0, 0);
+
+            // Atualizar cabeçalho e dados da tela
+            const titles = {
+                dashboard: 'Luís e Áquila - Início',
+                products: 'Luís e Áquila - Estoque',
+                groups: 'Luís e Áquila - Grupos',
+                alerts: 'Luís e Áquila - Alertas',
+                settings: 'Luís e Áquila - Backup & Config'
+            };
+            document.getElementById('header-title').textContent = titles[viewId] || 'Luís e Áquila';
+
+            if (viewId === 'dashboard') updateDashboard();
+            if (viewId === 'products') { loadGroupFilterChips(); renderProductList(); }
+            if (viewId === 'groups') renderGroupList();
+            if (viewId === 'alerts') renderAlertsList();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Sem validade';
+            const parts = dateString.split('-');
+            if (parts.length !== 3) return dateString;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function calculateValidityStatus(dateString) {
+            if (!dateString) return { status: 'none', label: 'Sem Validade', badgeClass: 'badge-secondary' };
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const parts = dateString.split('-');
+            const expiryDate = new Date(parts[0], parts[1] - 1, parts[2]);
+            expiryDate.setHours(0, 0, 0, 0);
+
+            const diffTime = expiryDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                return { status: 'expired', label: '🔴 Vencido', badgeClass: 'badge-danger' };
+            } else if (diffDays <= VALIDITY_RULES.WARNING_DAYS_CRITICAL) {
+                return { status: 'warning_critical', label: `🟠 Vence em ${diffDays}d`, badgeClass: 'badge-warning' };
+            } else if (diffDays <= VALIDITY_RULES.WARNING_DAYS_ALERT) {
+                return { status: 'warning_alert', label: `🟡 Vence em ${diffDays}d`, badgeClass: 'badge-yellow' };
+            } else {
+                return { status: 'ok', label: `🟢 Válido (${diffDays}d)`, badgeClass: 'badge-success' };
+            }
+        }
+
+        /* ==========================================================================
+           4. CRUD DE GRUPOS
+           ========================================================================== */
+        function saveGroup() {
+            const idInput = document.getElementById('group-id-edit').value;
+            const nameInput = document.getElementById('group-name-input').value.trim();
+
+            if (!nameInput) {
+                showToast('Informe o nome do grupo.');
+                return;
+            }
+
+            const transaction = db.transaction(['groups'], 'readwrite');
+            const store = transaction.objectStore('groups');
+
+            if (idInput) {
+                const request = store.get(Number(idInput));
+                request.onsuccess = () => {
+                    const group = request.result;
+                    if (group) {
+                        group.name = nameInput;
+                        store.put(group);
+                        transaction.oncomplete = () => {
+                            showToast('Grupo atualizado com sucesso!');
+                            resetGroupForm();
+                            renderGroupList();
+                        };
+                    }
+                };
+            } else {
+                store.add({ name: nameInput });
+                transaction.oncomplete = () => {
+                    showToast('Grupo cadastrado com sucesso!');
+                    resetGroupForm();
+                    renderGroupList();
+                };
+            }
+        }
+
+        function renderGroupList() {
+            const transaction = db.transaction(['groups', 'products'], 'readonly');
+            const groupStore = transaction.objectStore('groups');
+            const productStore = transaction.objectStore('products');
+
+            groupStore.getAll().onsuccess = (eGroups) => {
+                const groups = eGroups.target.result;
+                productStore.getAll().onsuccess = (eProds) => {
+                    const products = eProds.target.result;
+
+                    const container = document.getElementById('group-list');
+                    if (groups.length === 0) {
+                        container.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted);">Nenhum grupo cadastrado.</div>';
+                        return;
+                    }
+
+                    container.innerHTML = '';
+                    groups.forEach(group => {
+                        const count = products.filter(p => Number(p.groupId) === Number(group.id)).length;
+                        
+                        const card = document.createElement('div');
+                        card.className = 'product-card';
+                        card.innerHTML = `
+                            <div class="product-info">
+                                <div class="product-title">${group.name}</div>
+                                <div class="product-detail">Produtos vinculados: <strong>${count}</strong></div>
+                            </div>
+                            <div>
+                                <button class="chip" onclick="editGroup(${group.id}, '${group.name.replace(/'/g, "\\'")}')">Editar</button>
+                                <button class="chip" style="background:#fadbd8; color:var(--danger);" onclick="deleteGroup(${group.id}, ${count})">Excluir</button>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                };
+            };
+        }
+
+        function editGroup(id, name) {
+            document.getElementById('group-id-edit').value = id;
+            document.getElementById('group-name-input').value = name;
+            document.getElementById('group-form-title').textContent = 'Editar Grupo';
+            document.getElementById('group-cancel-btn').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function resetGroupForm() {
+            document.getElementById('group-id-edit').value = '';
+            document.getElementById('group-name-input').value = '';
+            document.getElementById('group-form-title').textContent = 'Cadastrar Novo Grupo';
+            document.getElementById('group-cancel-btn').style.display = 'none';
+        }
+
+        function deleteGroup(groupId, productCount) {
+            if (productCount > 0) {
+                if (!confirm(`Atenção: Este grupo possui ${productCount} produto(s) vinculado(s). Deseja realmente excluir o grupo? Os produtos ficarão sem grupo definido.`)) {
+                    return;
+                }
+            } else {
+                if (!confirm('Deseja realmente excluir este grupo?')) return;
+            }
+
+            const transaction = db.transaction(['groups', 'products'], 'readwrite');
+            const gStore = transaction.objectStore('groups');
+            const pStore = transaction.objectStore('products');
+
+            gStore.delete(groupId);
+
+            pStore.getAll().onsuccess = (e) => {
+                const prods = e.target.result;
+                prods.forEach(p => {
+                    if (Number(p.groupId) === Number(groupId)) {
+                        p.groupId = '';
+                        pStore.put(p);
+                    }
+                });
+            };
+
+            transaction.oncomplete = () => {
+                showToast('Grupo excluído com sucesso.');
+                renderGroupList();
+            };
+        }
+
+        /* ==========================================================================
+           5. GERENCIAMENTO DE FOTOS
+           ========================================================================== */
+        function handlePhotoSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                showToast('Por favor, selecione um arquivo de imagem válido.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 300;
+                    const MAX_HEIGHT = 300;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    currentCompressedPhoto = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    const preview = document.getElementById('img-preview');
+                    preview.src = currentCompressedPhoto;
+                    preview.style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removePhoto() {
+            currentCompressedPhoto = null;
+            const preview = document.getElementById('img-preview');
+            preview.src = '';
+            preview.style.display = 'none';
+            document.getElementById('prod-photo-file').value = '';
+        }
+
+        /* ==========================================================================
+           6. CRUD DE PRODUTOS & ESTOQUE
+           ========================================================================== */
+        function loadGroupDropdown(selectedGroupId = '') {
+            const transaction = db.transaction(['groups'], 'readonly');
+            const store = transaction.objectStore('groups');
+            store.getAll().onsuccess = (e) => {
+                const groups = e.target.result;
+                const select = document.getElementById('prod-group');
+                select.innerHTML = '<option value="">Selecione um grupo...</option>';
+                groups.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.textContent = g.name;
+                    if (Number(selectedGroupId) === Number(g.id)) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            };
+        }
+
+        function loadGroupFilterChips() {
+            const transaction = db.transaction(['groups'], 'readonly');
+            transaction.objectStore('groups').getAll().onsuccess = (e) => {
+                const groups = e.target.result;
+                const container = document.getElementById('group-filter-chips');
+                container.innerHTML = '<div class="chip active" onclick="setGroupFilter(null, this)">Todos os Grupos</div>';
+                groups.forEach(g => {
+                    container.innerHTML += `<div class="chip" onclick="setGroupFilter(${g.id}, this)">${g.name}</div>`;
+                });
+            };
+        }
+
+        function openProductModal(productId = null) {
+            loadGroupDropdown();
+            if (productId) {
+                document.getElementById('product-modal-title').textContent = 'Editar Produto';
+                const transaction = db.transaction(['products'], 'readonly');
+                transaction.objectStore('products').get(productId).onsuccess = (e) => {
+                    const p = e.target.result;
+                    if (p) {
+                        document.getElementById('prod-id').value = p.id;
+                        document.getElementById('prod-name').value = p.name;
+                        document.getElementById('prod-group').value = p.groupId || '';
+                        document.getElementById('prod-code').value = p.code || '';
+                        document.getElementById('prod-batch').value = p.batch || '';
+                        document.getElementById('prod-expiry').value = p.expiryDate || '';
+                        document.getElementById('prod-qty').value = p.quantity;
+                        document.getElementById('prod-min-qty').value = p.minQuantity !== undefined ? p.minQuantity : 2;
+                        document.getElementById('prod-obs').value = p.observations || '';
+                        
+                        currentCompressedPhoto = p.photo || null;
+                        const preview = document.getElementById('img-preview');
+                        if (currentCompressedPhoto) {
+                            preview.src = currentCompressedPhoto;
+                            preview.style.display = 'block';
+                        } else {
+                            preview.src = '';
+                            preview.style.display = 'none';
+                        }
+                    }
+                };
+            } else {
+                document.getElementById('product-modal-title').textContent = 'Novo Produto';
+                document.getElementById('product-form').reset();
+                document.getElementById('prod-id').value = '';
+                removePhoto();
+            }
+            document.getElementById('product-modal').style.display = 'flex';
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').style.display = 'none';
+        }
+
+        function saveProduct(event) {
+            event.preventDefault();
+            const id = document.getElementById('prod-id').value;
+            const name = document.getElementById('prod-name').value.trim();
+            const groupId = document.getElementById('prod-group').value;
+            const code = document.getElementById('prod-code').value.trim();
+            const batch = document.getElementById('prod-batch').value.trim();
+            const expiryDate = document.getElementById('prod-expiry').value;
+            const quantity = parseInt(document.getElementById('prod-qty').value, 10);
+            const minQuantity = parseInt(document.getElementById('prod-min-qty').value, 10);
+            const observations = document.getElementById('prod-obs').value.trim();
+
+            if (!name || isNaN(quantity)) {
+                showToast('Preencha os campos obrigatórios.');
+                return;
+            }
+
+            const transaction = db.transaction(['products', 'groups'], 'readwrite');
+            const store = transaction.objectStore('products');
+
+            const productData = {
+                name,
+                groupId: groupId ? Number(groupId) : null,
+                code,
+                batch,
+                expiryDate,
+                quantity,
+                minQuantity: isNaN(minQuantity) ? 2 : minQuantity,
+                observations,
+                photo: currentCompressedPhoto
+            };
+
+            if (id) {
+                productData.id = Number(id);
+                store.put(productData);
+            } else {
+                store.add(productData);
+            }
+
+            transaction.oncomplete = () => {
+                showToast('Produto salvo com sucesso!');
+                closeProductModal();
+                renderProductList();
+                updateDashboard();
+            };
+        }
+
+        function setProductFilter(filterType, element) {
+            currentProductFilter = filterType;
+            if (element) {
+                document.querySelectorAll('#view-products .filter-chips:first-of-type .chip').forEach(c => c.classList.remove('active'));
+                element.classList.add('active');
+            }
+            renderProductList();
+        }
+
+        function setGroupFilter(groupId, element) {
+            currentGroupFilter = groupId;
+            document.querySelectorAll('#group-filter-chips .chip').forEach(c => c.classList.remove('active'));
+            if (element) element.classList.add('active');
+            renderProductList();
+        }
+
+        function renderProductList() {
+            const searchText = document.getElementById('search-input').value.toLowerCase();
+            const transaction = db.transaction(['products', 'groups'], 'readonly');
+            const pStore = transaction.objectStore('products');
+            const gStore = transaction.objectStore('groups');
+
+            gStore.getAll().onsuccess = (eGroups) => {
+                const groupsMap = {};
+                eGroups.target.result.forEach(g => groupsMap[g.id] = g.name);
+
+                pStore.getAll().onsuccess = (eProds) => {
+                    let products = eProds.target.result;
+
+                    if (searchText) {
+                        products = products.filter(p => 
+                            (p.name && p.name.toLowerCase().includes(searchText)) ||
+                            (p.code && p.code.toLowerCase().includes(searchText)) ||
+                            (p.batch && p.batch.toLowerCase().includes(searchText))
+                        );
+                    }
+
+                    if (currentGroupFilter !== null) {
+                        products = products.filter(p => Number(p.groupId) === Number(currentGroupFilter));
+                    }
+
+                    products = products.filter(p => {
+                        const val = calculateValidityStatus(p.expiryDate);
+                        const isLowStock = p.quantity <= (p.minQuantity !== undefined ? p.minQuantity : 2);
+
+                        if (currentProductFilter === 'expired') return val.status === 'expired';
+                        if (currentProductFilter === 'warning') return val.status === 'warning_critical' || val.status === 'warning_alert';
+                        if (currentProductFilter === 'low_stock') return isLowStock;
+                        if (currentProductFilter === 'expired_or_warning') return val.status === 'expired' || val.status === 'warning_critical' || val.status === 'warning_alert';
+                        return true;
+                    });
+
+                    const container = document.getElementById('product-list');
+                    if (products.length === 0) {
+                        container.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted);">Nenhum produto encontrado.</div>';
+                        return;
+                    }
+
+                    container.innerHTML = '';
+                    products.forEach(p => {
+                        const groupName = groupsMap[p.groupId] || 'Sem Grupo';
+                        const val = calculateValidityStatus(p.expiryDate);
+                        const isLowStock = p.quantity <= (p.minQuantity !== undefined ? p.minQuantity : 2);
+
+                        const card = document.createElement('div');
+                        card.className = 'product-card';
+                        card.innerHTML = `
+                            <div class="product-thumb">
+                                ${p.photo ? `<img src="${p.photo}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">` : 'Sem Foto'}
+                            </div>
+                            <div class="product-info" onclick="openDetailsModal(${p.id})">
+                                <div class="product-title">${p.name}</div>
+                                <div class="product-detail">📁 ${groupName} | Qtd: <strong>${p.quantity}</strong> ${isLowStock ? '<span class="badge badge-danger">Estoque Baixo</span>' : ''}</div>
+                                <div class="product-detail">Validade: ${formatDate(p.expiryDate)} <span class="badge ${val.badgeClass}">${val.label}</span></div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:5px;">
+                                <button class="chip" onclick="openMovementModal(${p.id})">± Estoque</button>
+                                <button class="chip" onclick="openProductModal(${p.id})">Editar</button>
+                                <button class="chip" style="background:#fadbd8; color:var(--danger);" onclick="deleteProduct(${p.id})">Excluir</button>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                };
+            };
+        }
+
+        function deleteProduct(productId) {
+            if (!confirm('Deseja realmente excluir este produto?')) return;
+
+            const transaction = db.transaction(['products', 'movements'], 'readwrite');
+            transaction.objectStore('products').delete(productId);
+            
+            const movStore = transaction.objectStore('movements');
+            movStore.index('productId').getAll(productId).onsuccess = (e) => {
+                e.target.result.forEach(m => movStore.delete(m.id));
+            };
+
+            transaction.oncomplete = () => {
+                showToast('Produto excluído com sucesso.');
+                renderProductList();
+                updateDashboard();
+            };
+        }
+
+        /* ==========================================================================
+           7. MOVIMENTAÇÃO DE ESTOQUE E HISTÓRICO
+           ========================================================================== */
+        function openMovementModal(productId) {
+            const transaction = db.transaction(['products', 'movements'], 'readonly');
+            transaction.objectStore('products').get(productId).onsuccess = (e) => {
+                const p = e.target.result;
+                if (!p) return;
+
+                document.getElementById('mov-prod-id').value = p.id;
+                document.getElementById('movement-modal-title').textContent = `Movimentar: ${p.name}`;
+                document.getElementById('movement-prod-info').innerHTML = `Estoque Atual: <strong>${p.quantity}</strong> | Mínimo: ${p.minQuantity || 2}`;
+                document.getElementById('movement-form').reset();
+
+                const histList = document.getElementById('movement-history-list');
+                histList.innerHTML = 'Carregando histórico...';
+                
+                transaction.objectStore('movements').index('productId').getAll(productId).onsuccess = (eMov) => {
+                    const movs = eMov.target.result.sort((a,b) => new Date(b.date) - new Date(a.date));
+                    if (movs.length === 0) {
+                        histList.innerHTML = 'Nenhuma movimentação registrada.';
+                        return;
+                    }
+                    histList.innerHTML = '';
+                    movs.forEach(m => {
+                        const typeSign = m.type === 'IN' ? '+' : '-';
+                        const typeColor = m.type === 'IN' ? 'var(--success)' : 'var(--danger)';
+                        histList.innerHTML += `<div style="border-bottom:1px solid #eee; padding:4px 0;">
+                            <span style="color:${typeColor}; font-weight:bold;">${typeSign}${m.qty}</span> (${m.type === 'IN' ? 'Entrada' : 'Saída'}) - ${new Date(m.date).toLocaleString()} <br>
+                            <span style="color:var(--text-muted);">${m.obs || 'Sem observação'}</span>
+                        </div>`;
+                    });
+                };
+
+                document.getElementById('movement-modal').style.display = 'flex';
+            };
+        }
+
+        function closeMovementModal() {
+            document.getElementById('movement-modal').style.display = 'none';
+        }
+
+        function saveMovement(event) {
+            event.preventDefault();
+            const productId = Number(document.getElementById('mov-prod-id').value);
+            const type = document.getElementById('mov-type').value;
+            const qty = parseInt(document.getElementById('mov-qty').value, 10);
+            const obs = document.getElementById('mov-obs').value.trim();
+
+            if (isNaN(qty) || qty <= 0) {
+                showToast('Informe uma quantidade válida.');
+                return;
+            }
+
+            const transaction = db.transaction(['products', 'movements'], 'readwrite');
+            const pStore = transaction.objectStore('products');
+            const mStore = transaction.objectStore('movements');
+
+            pStore.get(productId).onsuccess = (e) => {
+                const p = e.target.result;
+                if (!p) return;
+
+                if (type === 'OUT' && p.quantity < qty) {
+                    showToast('Estoque insuficiente para esta saída.');
+                    return;
+                }
+
+                p.quantity = type === 'IN' ? p.quantity + qty : p.quantity - qty;
+                pStore.put(p);
+
+                mStore.add({
+                    productId,
+                    type,
+                    qty,
+                    date: new Date().toISOString(),
+                    obs
+                });
+
+                transaction.oncomplete = () => {
+                    showToast('Movimentação registrada com sucesso!');
+                    closeMovementModal();
+                    renderProductList();
+                    updateDashboard();
+                };
+            };
+        }
+
+        /* ==========================================================================
+           8. DASHBOARD E ALERTAS
+           ========================================================================== */
+        function updateDashboard() {
+            const transaction = db.transaction(['products'], 'readonly');
+            transaction.objectStore('products').getAll().onsuccess = (e) => {
+                const products = e.target.result;
+                
+                let totalProds = products.length;
+                let totalUnits = 0;
+                let expiredCount = 0;
+                let warningCount = 0;
+                let lowStockCount = 0;
+                let lowStockNames = [];
+
+                products.forEach(p => {
+                    totalUnits += Number(p.quantity || 0);
+                    const val = calculateValidityStatus(p.expiryDate);
+                    if (val.status === 'expired') expiredCount++;
+                    if (val.status === 'warning_critical' || val.status === 'warning_alert') warningCount++;
+
+                    const minQ = p.minQuantity !== undefined ? p.minQuantity : 2;
+                    if (p.quantity <= minQ) {
+                        lowStockCount++;
+                        lowStockNames.push(p.name);
+                    }
+                });
+
+                document.getElementById('dash-total-prods').textContent = totalProds;
+                document.getElementById('dash-total-units').textContent = totalUnits;
+                document.getElementById('dash-expired').textContent = expiredCount;
+                document.getElementById('dash-warning').textContent = warningCount;
+
+                const lowStockText = document.getElementById('dash-low-stock-text');
+                if (lowStockCount > 0) {
+                    lowStockText.textContent = `${lowStockCount} produto(s) com estoque baixo: ${lowStockNames.slice(0, 3).join(', ')}${lowStockCount > 3 ? '...' : ''}`;
+                } else {
+                    lowStockText.textContent = 'Nenhum produto com estoque baixo.';
+                }
+            };
+        }
+
+        function renderAlertsList() {
+            const transaction = db.transaction(['products', 'groups'], 'readonly');
+            transaction.objectStore('groups').getAll().onsuccess = (eGroups) => {
+                const groupsMap = {};
+                eGroups.target.result.forEach(g => groupsMap[g.id] = g.name);
+
+                transaction.objectStore('products').getAll().onsuccess = (eProds) => {
+                    const products = eProds.target.result;
+                    const container = document.getElementById('alert-product-list');
+
+                    const alertProducts = products.filter(p => {
+                        const val = calculateValidityStatus(p.expiryDate);
+                        const isLow = p.quantity <= (p.minQuantity !== undefined ? p.minQuantity : 2);
+                        return val.status === 'expired' || val.status === 'warning_critical' || val.status === 'warning_alert' || isLow;
+                    });
+
+                    if (alertProducts.length === 0) {
+                        container.innerHTML = '<div class="card" style="text-align:center; color:var(--text-muted);">Nenhum alerta pendente. Todos os produtos estão regulares!</div>';
+                        return;
+                    }
+
+                    container.innerHTML = '';
+                    alertProducts.forEach(p => {
+                        const val = calculateValidityStatus(p.expiryDate);
+                        const isLow = p.quantity <= (p.minQuantity !== undefined ? p.minQuantity : 2);
+
+                        const card = document.createElement('div');
+                        card.className = 'product-card';
+                        card.innerHTML = `
+                            <div class="product-thumb">
+                                ${p.photo ? `<img src="${p.photo}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">` : 'Sem Foto'}
+                            </div>
+                            <div class="product-info" onclick="openDetailsModal(${p.id})">
+                                <div class="product-title">${p.name}</div>
+                                <div class="product-detail">Qtd: <strong>${p.quantity}</strong> ${isLow ? '<span class="badge badge-danger">Estoque Baixo</span>' : ''}</div>
+                                <div class="product-detail">Validade: ${formatDate(p.expiryDate)} <span class="badge ${val.badgeClass}">${val.label}</span></div>
+                            </div>
+                            <div>
+                                <button class="chip" onclick="openMovementModal(${p.id})">± Estoque</button>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                };
+            };
+        }
+
+        function openDetailsModal(productId) {
+            const transaction = db.transaction(['products', 'groups'], 'readonly');
+            transaction.objectStore('groups').getAll().onsuccess = (eGroups) => {
+                const groupsMap = {};
+                eGroups.target.result.forEach(g => groupsMap[g.id] = g.name);
+
+                transaction.objectStore('products').get(productId).onsuccess = (e) => {
+                    const p = e.target.result;
+                    if (!p) return;
+
+                    const val = calculateValidityStatus(p.expiryDate);
+                    const groupName = groupsMap[p.groupId] || 'Sem Grupo';
+
+                    const modalContent = document.getElementById('details-modal-content');
+                    modalContent.innerHTML = `
+                        <div class="modal-header">
+                            <span>Detalhes do Produto</span>
+                            <button class="close-modal" onclick="closeDetailsModal()">&times;</button>
+                        </div>
+                        <div style="text-align:center; margin-bottom:15px;">
+                            ${p.photo ? `<img src="${p.photo}" style="width:120px; height:120px; object-fit:cover; border-radius:8px; border:1px solid var(--border-color);">` : '<div style="color:var(--text-muted);">Sem foto cadastrada</div>'}
+                        </div>
+                        <div style="font-size: 0.95rem; display:flex; flex-direction:column; gap:8px;">
+                            <div><strong>Nome:</strong> ${p.name}</div>
+                            <div><strong>Grupo:</strong> ${groupName}</div>
+                            <div><strong>Código:</strong> ${p.code || 'Não informado'}</div>
+                            <div><strong>Lote:</strong> ${p.batch || 'Não informado'}</div>
+                            <div><strong>Validade:</strong> ${formatDate(p.expiryDate)} <span class="badge ${val.badgeClass}">${val.label}</span></div>
+                            <div><strong>Quantidade Atual:</strong> ${p.quantity}</div>
+                            <div><strong>Estoque Mínimo:</strong> ${p.minQuantity !== undefined ? p.minQuantity : 2}</div>
+                            <div><strong>Observações:</strong> ${p.observations || 'Nenhuma observação.'}</div>
+                        </div>
+                        <button class="btn btn-primary mt-2" onclick="closeDetailsModal()">Fechar</button>
+                    `;
+                    document.getElementById('details-modal').style.display = 'flex';
+                };
+            };
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-modal').style.display = 'none';
+        }
+
+        /* ==========================================================================
+           9. BACKUP E RESTAURAÇÃO (JSON)
+           ========================================================================== */
+        function exportBackup() {
+            const transaction = db.transaction(['groups', 'products', 'movements'], 'readonly');
+            
+            let backupData = {
+                version: 1,
+                date: new Date().toISOString(),
+                groups: [],
+                products: [],
+                movements: []
+            };
+
+            transaction.objectStore('groups').getAll().onsuccess = (e1) => {
+                backupData.groups = e1.target.result;
+                transaction.objectStore('products').getAll().onsuccess = (e2) => {
+                    backupData.products = e2.target.result;
+                    transaction.objectStore('movements').getAll().onsuccess = (e3) => {
+                        backupData.movements = e3.target.result;
+
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+                        const downloadAnchor = document.createElement('a');
+                        
+                        const dateStr = new Date().toISOString().slice(0, 10);
+                        downloadAnchor.setAttribute("href", dataStr);
+                        downloadAnchor.setAttribute("download", `backup-luis-aquila-${dateStr}.json`);
+                        document.body.appendChild(downloadAnchor);
+                        downloadAnchor.click();
+                        downloadAnchor.remove();
+                        showToast('Backup exportado com sucesso!');
+                    };
+                };
+            };
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm('⚠️ Esta operação substituirá todos os dados atuais. Deseja continuar?')) {
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backup = JSON.parse(e.target.result);
+                    if (!backup.version || !backup.groups || !backup.products) {
+                        throw new Error('Arquivo de backup inválido ou corrompido.');
+                    }
+
+                    const transaction = db.transaction(['groups', 'products', 'movements'], 'readwrite');
+                    
+                    transaction.objectStore('groups').clear();
+                    transaction.objectStore('products').clear();
+                    transaction.objectStore('movements').clear();
+
+                    backup.groups.forEach(g => transaction.objectStore('groups').add(g));
+                    backup.products.forEach(p => transaction.objectStore('products').add(p));
+                    if (backup.movements) {
+                        backup.movements.forEach(m => transaction.objectStore('movements').add(m));
+                    }
+
+                    transaction.oncomplete = () => {
+                        showToast('Backup restaurado com sucesso!');
+                        navigate('dashboard');
+                        event.target.value = '';
+                    };
+
+                } catch (err) {
+                    console.error(err);
+                    showToast('Erro ao importar arquivo: formato inválido.');
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllDataPrompt() {
+            if (!confirm('⚠️ ATENÇÃO: Deseja apagar todos os dados do sistema permanentemente? Esta ação não pode ser desfeita.')) return;
+            if (!confirm('Tem absoluta certeza? Todos os produtos e históricos serão perdidos.')) return;
+
+            const transaction = db.transaction(['groups', 'products', 'movements'], 'readwrite');
+            transaction.objectStore('groups').clear();
+            transaction.objectStore('products').clear();
+            transaction.objectStore('movements').clear();
+
+            transaction.oncomplete = () => {
+                showToast('Todos os dados foram apagados.');
+                navigate('dashboard');
+            };
+        }
+
+        /* ==========================================================================
+           10. INICIALIZAÇÃO GERAL
+           ========================================================================== */
+        function initializeApp() {
+            updateDashboard();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initDB().catch(err => {
+                console.error("Falha ao iniciar IndexedDB", err);
+            });
+        });
+    </script>
+</body>
+</html>
